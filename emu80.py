@@ -1,8 +1,8 @@
-"""Simulator for 8080 & 8085 microprocessors
+"""Emulator for the Intel 8080A microprocessor
 
 Author: Leonard Visser
 
-Reads hex file, creates a simulated processor, memory, IO system.  Code
+Reads hex file, creates an emulated processor, memory, IO system.  Code
 can be executed and when breakpoint or Halt is encountered the state of
 the machine can be displayed.
 
@@ -21,8 +21,8 @@ Commands
   S (Addr)      ;Single step from address or current PC
 
 Hooks for hardware
-  OUT 0 will display a character from regs['A']
-  IN  1 will return A=1
+  OUT 2 will display a character from regs['A']
+  IN  3 will return A=1
   CALL to 0020H will be redirected to input a line of text from keyboard
   JZ to 0023H will be redirected to save the program from simulated memory to disk
   JZ to 0026H will be redirected to load a program from disk to simulated memory
@@ -100,7 +100,7 @@ def instruction_03(): # INX B
     regs['B'] = bc // 256
     regs['C'] = bc % 256
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_04(): # INR B
     global memory, periods, regs, flags
@@ -115,7 +115,7 @@ def instruction_04(): # INR B
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_05(): # DCR B
     global memory, periods, regs, flags
@@ -130,7 +130,7 @@ def instruction_05(): # DCR B
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_06(): # MVI B,D8
     global memory, periods, regs, flags
@@ -186,7 +186,7 @@ def instruction_0B(): # DCX B
     regs['B'] = bc // 256
     regs['C'] = bc % 256
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_0C(): # INR C
     global memory, periods, regs, flags
@@ -201,7 +201,7 @@ def instruction_0C(): # INR C
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_0D(): # DCR C
     global memory, periods, regs, flags
@@ -216,7 +216,7 @@ def instruction_0D(): # DCR C
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_0E(): # MVI C,D8
     global memory, periods, regs, flags
@@ -272,7 +272,7 @@ def instruction_13(): # INX D
     regs['D'] = de // 256
     regs['E'] = de % 256
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_14(): # INR D
     global memory, periods, regs, flags
@@ -287,7 +287,7 @@ def instruction_14(): # INR D
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_15(): # DCR D
     global memory, periods, regs, flags
@@ -302,7 +302,7 @@ def instruction_15(): # DCR D
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_16(): # MVI D,D8
     global memory, periods, regs, flags
@@ -358,7 +358,7 @@ def instruction_1B(): # DCX D
     regs['D'] = de // 256
     regs['E'] = de % 256
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_1C(): # INR E
     global memory, periods, regs, flags
@@ -373,7 +373,7 @@ def instruction_1C(): # INR E
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_1D(): # DCR E
     global memory, periods, regs, flags
@@ -388,7 +388,7 @@ def instruction_1D(): # DCR E
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_1E(): # MVI E,D8
     global memory, periods, regs, flags
@@ -407,12 +407,10 @@ def instruction_1F(): # RAR
     regs['PC'] = (regs['PC'] + 1) & 65535
     periods += 4
 
-def instruction_20(): # RIM
-    global memory, periods, regs, flags
-    if single_step: print(str.format('{:04X}', regs['PC']),'RIM')
-    regs['A'] = regs['RIM']
-    regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+def instruction_20(): # undefined
+    print ('Undefined instuction 20 encountered at', str.format('{:04X}', regs['PC']))
+    global invalid
+    invalid = True
 
 def instruction_21(): # LXI H,D16
     global memory, periods, regs, flags
@@ -447,7 +445,7 @@ def instruction_23(): # INX H
     regs['H'] = hl // 256
     regs['L'] = hl % 256
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_24(): # INR H
     global memory, periods, regs, flags
@@ -462,7 +460,7 @@ def instruction_24(): # INR H
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_25(): # DCR H
     global memory, periods, regs, flags
@@ -477,7 +475,7 @@ def instruction_25(): # DCR H
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_26(): # MVI H,D8
     global memory, periods, regs, flags
@@ -542,7 +540,7 @@ def instruction_2B(): # DCX H
     regs['H'] = hl // 256
     regs['L'] = hl % 256
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_2C(): # INR L
     global memory, periods, regs, flags
@@ -557,7 +555,7 @@ def instruction_2C(): # INR L
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_2D(): # DCR L
     global memory, periods, regs, flags
@@ -572,7 +570,7 @@ def instruction_2D(): # DCR L
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_2E(): # MVI L,D8
     global memory, periods, regs, flags
@@ -589,12 +587,11 @@ def instruction_2F(): # CMA
     regs['PC'] = (regs['PC'] + 1) & 65535
     periods += 4
 
-def instruction_30(): # SIM
-    global memory, periods, regs, flags
-    if single_step: print(str.format('{:04X}', regs['PC']),'SIM')
-    regs['SIM'] = regs['A']
-    regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+def instruction_30(): # undefined
+    print ('Undefined instuction 30 encountered at', str.format('{:04X}', regs['PC']))
+    global invalid
+    invalid = True
+
 
 def instruction_31(): # LXI SP,D16
     global memory, periods, regs, flags
@@ -626,7 +623,7 @@ def instruction_33(): # INX SP
         flags['K'] = 0
     regs['SP'] = sp
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_34(): # INR M
     global memory, periods, regs, flags
@@ -711,7 +708,7 @@ def instruction_3B(): # DCX SP
         flags['K'] = 0
     regs['SP'] = sp
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_3C(): # INR A
     global memory, periods, regs, flags
@@ -726,7 +723,7 @@ def instruction_3C(): # INR A
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_3D(): # DCR A
     global memory, periods, regs, flags
@@ -741,7 +738,7 @@ def instruction_3D(): # DCR A
     else:
         flags['AC'] = 0
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_3E(): # MVI A,D8
     global memory, periods, regs, flags
@@ -765,331 +762,331 @@ def instruction_40(): # MOV B,B
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV B,B')
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_41(): # MOV B,C
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV B,C')
     regs['B'] = regs['C']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_42(): # MOV B,D
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV B,D')
     regs['B'] = regs['D']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_43(): # MOV B,E
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV B,E')
     regs['B'] = regs['E']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_44(): # MOV B,H
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV B,H')
     regs['B'] = regs['H']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_45(): # MOV B,L
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV B,L')
     regs['B'] = regs['L']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_46(): # MOV B,M
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV B,M')
     regs['B'] = memory[256*regs['H'] + regs['L']]
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 7
 
 def instruction_47(): # MOV B,A
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV B,A')
     regs['B'] = regs['A']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_48(): # MOV C,B
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV C,B')
     regs['C'] = regs['B']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_49(): # MOV C,C
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV C,C')
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_4A(): # MOV C,D
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV C,D')
     regs['C'] = regs['D']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_4B(): # MOV C,E
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV C,E')
     regs['C'] = regs['E']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_4C(): # MOV C,H
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV C,H')
     regs['C'] = regs['H']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_4D(): # MOV C,L
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV C,L')
     regs['C'] = regs['L']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_4E(): # MOV C,M
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV C,M')
     regs['C'] = memory[256*regs['H'] + regs['L']]
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 7
 
 def instruction_4F(): # MOV C,A
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV C,A')
     regs['C'] = regs['A']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_50(): # MOV D,B
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV D,B')
     regs['D'] = regs['B']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_51(): # MOV D,C
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV D,C')
     regs['D'] = regs['C']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_52(): # MOV D,D
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV D,D')
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_53(): # MOV D,E
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV D,E')
     regs['D'] = regs['E']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_54(): # MOV D,H
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV D,H')
     regs['D'] = regs['H']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_55(): # MOV D,L
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV D,L')
     regs['D'] = regs['L']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_56(): # MOV D,M
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV D,M')
     regs['D'] = memory[256*regs['H'] + regs['L']]
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 7
 
 def instruction_57(): # MOV D,A
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV D,A')
     regs['D'] = regs['A']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_58(): # MOV E,B
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV E,B')
     regs['E'] = regs['B']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_59(): # MOV E,C
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV E,C')
     regs['E'] = regs['C']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_5A(): # MOV E,D
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV E,D')
     regs['E'] = regs['D']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_5B(): # MOV E,E
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV E,E')
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_5C(): # MOV E,H
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV E,H')
     regs['E'] = regs['H']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_5D(): # MOV E,L
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV E,L')
     regs['E'] = regs['L']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_5E(): # MOV E,M
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV E,M')
     regs['E'] = memory[256*regs['H'] + regs['L']]
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 7
 
 def instruction_5F(): # MOV E,A
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV E,A')
     regs['E'] = regs['A']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_60(): # MOV H,B
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV H,B')
     regs['H'] = regs['B']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_61(): # MOV H,C
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV H,C')
     regs['H'] = regs['C']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_62(): # MOV H,D
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV H,D')
     regs['H'] = regs['D']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_63(): # MOV H,E
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV H,E')
     regs['H'] = regs['E']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_64(): # MOV H,H
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV H,H')
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_65(): # MOV H,L
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV H,L')
     regs['H'] = regs['L']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_66(): # MOV H,M
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV H,M')
     regs['H'] = memory[256*regs['H'] + regs['L']]
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 7
 
 def instruction_67(): # MOV H,A
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV H,A')
     regs['H'] = regs['A']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_68(): # MOV L,B
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV L,B')
     regs['L'] = regs['B']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_69(): # MOV L,C
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV L,C')
     regs['L'] = regs['C']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_6A(): # MOV L,D
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV L,D')
     regs['L'] = regs['D']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_6B(): # MOV L,E
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV L,E')
     regs['L'] = regs['E']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_6C(): # MOV L,H
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV L,H')
     regs['L'] = regs['H']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_6D(): # MOV L,L
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV L,L')
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_6E(): # MOV L,M
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV L,M')
     regs['L'] = memory[256*regs['H'] + regs['L']]
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 7
 
 def instruction_6F(): # MOV L,A
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV L,A')
     regs['L'] = regs['A']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_70(): # MOV M,B
     global memory, periods, regs, flags
@@ -1137,7 +1134,7 @@ def instruction_76(): # HLT
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'HLT')
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 5
+    periods += 7
 
 def instruction_77(): # MOV M,A
     global memory, periods, regs, flags
@@ -1151,55 +1148,55 @@ def instruction_78(): # MOV A,B
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV A,B')
     regs['A'] = regs['B']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_79(): # MOV A,C
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV A,C')
     regs['A'] = regs['C']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_7A(): # MOV A,D
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV A,D')
     regs['A'] = regs['D']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_7B(): # MOV A,E
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV A,E')
     regs['A'] = regs['E']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_7C(): # MOV A,H
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV A,H')
     regs['A'] = regs['H']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_7D(): # MOV A,L
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV A,L')
     regs['A'] = regs['L']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_7E(): # MOV A,M
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV A,M')
     regs['A'] = memory[256*regs['H'] + regs['L']]
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 7
 
 def instruction_7F(): # MOV A,A
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),'MOV A,A')
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 4
+    periods += 5
 
 def instruction_80(): # ADD B
     global memory, periods, regs, flags
@@ -1972,10 +1969,10 @@ def instruction_C0(): # RNZ
         sp += 1
         regs['PC'] = pc
         regs['SP'] = sp
-        periods += 12
+        periods += 11
     else:
         regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_C1(): # POP B
     global memory, periods, regs, flags, single_step
@@ -1999,7 +1996,7 @@ def instruction_C2(): # JNZ addr
         periods += 10
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 7
+    periods += 10
 
 def instruction_C3(): # JMP addr
     global memory, periods, regs, flags, single_step
@@ -2040,7 +2037,7 @@ def instruction_C5(): # PUSH B
     memory[sp] = regs['C']
     regs['SP'] = sp
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 13
+    periods += 11
 
 def instruction_C6(): # ADI D8
     global memory, periods, regs, flags
@@ -2066,7 +2063,7 @@ def instruction_C7(): # RST 0
     memory[sp] = regs['PC'] // 256
     regs['SP'] = sp
     regs['PC'] = 8
-    periods += 12
+    periods += 11
 
 def instruction_C8(): # RZ
     global memory, periods, regs, flags, single_step
@@ -2079,10 +2076,10 @@ def instruction_C8(): # RZ
         sp += 1
         regs['PC'] = pc
         regs['SP'] = sp
-        periods += 12
+        periods += 11
     else:
         regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_C9(): # RET
     global memory, periods, regs, flags, single_step
@@ -2106,7 +2103,7 @@ def instruction_CA(): # JZ addr
         periods += 10
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 7
+    periods += 10
 
 def instruction_CB(): # undefined
     print ('Undefined instuction CB encountered at', str.format('{:04X}', regs['PC']))
@@ -2126,10 +2123,10 @@ def instruction_CC(): # CZ addr
         memory[sp] = ((regs['PC']+3) & 65535) % 256
         regs['SP'] = sp
         regs['PC'] = memory[regs['PC']+1] + 256*memory[regs['PC']+2]
-        periods += 18
+        periods += 17
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 9
+    periods += 11
 
 def instruction_CD(): # CALL addr
     global memory, periods, regs, flags, single_step, column
@@ -2205,7 +2202,7 @@ def instruction_CD(): # CALL addr
     memory[sp] = ((regs['PC']+3) & 65535) % 256
     regs['SP'] = sp
     regs['PC'] = target
-    periods += 18
+    periods += 17
 
 def instruction_CE(): # ACI D8
     global memory, periods, regs, flags
@@ -2231,7 +2228,7 @@ def instruction_CF(): # RST 1
     memory[sp] = regs['PC'] // 256
     regs['SP'] = sp
     regs['PC'] = 16
-    periods += 12
+    periods += 11
 
 def instruction_D0(): # RNC
     global memory, periods, regs, flags, single_step
@@ -2244,10 +2241,10 @@ def instruction_D0(): # RNC
         sp += 1
         regs['PC'] = pc
         regs['SP'] = sp
-        periods += 12
+        periods += 11
     else:
         regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_D1(): # POP D
     global memory, periods, regs, flags, single_step
@@ -2271,7 +2268,7 @@ def instruction_D2(): # JNC addr
         periods += 10
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 7
+    periods += 10
 
 def instruction_D3(): # OUT D8
     global memory, periods, regs, flags, column, save_flag, save_program, fname
@@ -2279,7 +2276,7 @@ def instruction_D3(): # OUT D8
     'OUT ' + str.format('{:02X}', memory[regs['PC']+1]))
     D8 = memory[regs['PC']+1]
     port[D8] = regs['A']
-    if D8 == 0: # Hardware hook: port 0 mapped to display char
+    if D8 == 2: # Hardware hook: port 2 mapped to UART data
         if regs['A'] == 10: #ignore LF
             pass
         elif regs['A'] == 13: #handle CR
@@ -2307,10 +2304,10 @@ def instruction_D4(): # CNC addr
         memory[sp] = ((regs['PC']+3) & 65535) % 256
         regs['SP'] = sp
         regs['PC'] = memory[regs['PC']+1] + 256*memory[regs['PC']+2]
-        periods += 18
+        periods += 17
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 9
+    periods += 11
 
 def instruction_D5(): # PUSH D
     global memory, periods, regs, flags, single_step
@@ -2322,7 +2319,7 @@ def instruction_D5(): # PUSH D
     memory[sp] = regs['E']
     regs['SP'] = sp
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 13
+    periods += 11
 
 def instruction_D6(): # SUI D8
     global memory, periods, regs, flags
@@ -2350,7 +2347,7 @@ def instruction_D7(): # RST 2
     memory[sp] = regs['PC'] // 256
     regs['SP'] = sp
     regs['PC'] = 24
-    periods += 12
+    periods += 11
 
 def instruction_D8(): # RC
     global memory, periods, regs, flags, single_step
@@ -2363,10 +2360,10 @@ def instruction_D8(): # RC
         sp += 1
         regs['PC'] = pc
         regs['SP'] = sp
-        periods += 12
+        periods += 11
     else:
         regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_D9(): # undefined
     print ('Undefined instuction D9 encountered at', str.format('{:04X}', regs['PC']))
@@ -2383,14 +2380,14 @@ def instruction_DA(): # JC addr
         periods += 10
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 7
+    periods += 10
 
 def instruction_DB(): # IN D8
     global memory, periods, regs, flags
     if single_step: print(str.format('{:04X}', regs['PC']),
     'IN ' + str.format('{:02X}', memory[regs['PC']+1]))
     D8 = memory[regs['PC']+1]
-    if D8 == 1: # Hardware hook: port 1 mapped to display status (1)
+    if D8 == 3: # Hardware hook: port 3 mapped to UART status (1)
         regs['A'] = 1
     else:
         regs['A'] = port[D8]
@@ -2410,10 +2407,10 @@ def instruction_DC(): # CC addr
         memory[sp] = ((regs['PC']+3) & 65535) % 256
         regs['SP'] = sp
         regs['PC'] = memory[regs['PC']+1] + 256*memory[regs['PC']+2]
-        periods += 18
+        periods += 17
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 9
+    periods += 11
 
 def instruction_DD(): # undefined
     print ('Undefined instuction DD encountered at', str.format('{:04X}', regs['PC']))
@@ -2446,7 +2443,7 @@ def instruction_DF(): # RST 3
     memory[sp] = regs['PC'] // 256
     regs['SP'] = sp
     regs['PC'] = 32
-    periods += 12
+    periods += 11
 
 def instruction_E0(): # RPO
     global memory, periods, regs, flags, single_step
@@ -2459,10 +2456,10 @@ def instruction_E0(): # RPO
         sp += 1
         regs['PC'] = pc
         regs['SP'] = sp
-        periods += 12
+        periods += 11
     else:
         regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_E1(): # POP H
     global memory, periods, regs, flags, single_step
@@ -2486,7 +2483,7 @@ def instruction_E2(): # JPO addr
         periods += 10
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 7
+    periods += 10
 
 def instruction_E3(): # XTHL
     global memory, periods, regs, flags, single_step
@@ -2513,10 +2510,10 @@ def instruction_E4(): # CPO addr
         memory[sp] = ((regs['PC']+3) & 65535) % 256
         regs['SP'] = sp
         regs['PC'] = memory[regs['PC']+1] + 256*memory[regs['PC']+2]
-        periods += 18
+        periods += 17
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 9
+    periods += 11
 
 def instruction_E5(): # PUSH H
     global memory, periods, regs, flags, single_step
@@ -2528,7 +2525,7 @@ def instruction_E5(): # PUSH H
     memory[sp] = regs['L']
     regs['SP'] = sp
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 13
+    periods += 11
 
 def instruction_E6(): # ANI D8
     global memory, periods, regs, flags, single_step
@@ -2552,7 +2549,7 @@ def instruction_E7(): # RST 4
     memory[sp] = regs['PC'] // 256
     regs['SP'] = sp
     regs['PC'] = 40
-    periods += 12
+    periods += 11
 
 def instruction_E8(): # RPE
     global memory, periods, regs, flags, single_step
@@ -2565,16 +2562,16 @@ def instruction_E8(): # RPE
         sp += 1
         regs['PC'] = pc
         regs['SP'] = sp
-        periods += 12
+        periods += 11
     else:
         regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_E9(): # PCHL
     global memory, periods, regs, flags, single_step
     if single_step: print(str.format('{:04X}', regs['PC']),'PCHL')
     regs['PC'] = 256* regs['H'] + regs['L']
-    periods += 6
+    periods += 5
 
 def instruction_EA(): # JPE addr
     global memory, periods, regs, flags, single_step
@@ -2586,7 +2583,7 @@ def instruction_EA(): # JPE addr
         periods += 10
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 7
+    periods += 10
 
 def instruction_EB(): # XCHG
     global memory, periods, regs, flags, single_step
@@ -2613,10 +2610,10 @@ def instruction_EC(): # CPE addr
         memory[sp] = ((regs['PC']+3) & 65535) % 256
         regs['SP'] = sp
         regs['PC'] = memory[regs['PC']+1] + 256*memory[regs['PC']+2]
-        periods += 18
+        periods += 17
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 9
+    periods += 11
 
 def instruction_ED(): # undefined
     print ('Undefined instuction ED encountered at', str.format('{:04X}', regs['PC']))
@@ -2645,7 +2642,7 @@ def instruction_EF(): # RST 5
     memory[sp] = regs['PC'] // 256
     regs['SP'] = sp
     regs['PC'] = 48
-    periods += 12
+    periods += 11
 
 def instruction_F0(): # RP
     global memory, periods, regs, flags, single_step
@@ -2736,7 +2733,7 @@ def instruction_F5(): # PUSH PSW
     memory[sp] = i
     regs['SP'] = sp
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 12
+    periods += 11
 
 def instruction_F6(): # ORI D8
     global memory, periods, regs, flags, single_step
@@ -2760,7 +2757,7 @@ def instruction_F7(): # RST 6
     memory[sp] = regs['PC'] // 256
     regs['SP'] = sp
     regs['PC'] = 56
-    periods += 12
+    periods += 11
 
 def instruction_F8(): # RM
     global memory, periods, regs, flags, single_step
@@ -2773,17 +2770,17 @@ def instruction_F8(): # RM
         sp += 1
         regs['PC'] = pc
         regs['SP'] = sp
-        periods += 12
+        periods += 11
     else:
         regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_F9(): # SPHL
     global memory, periods, regs, flags, single_step
     if single_step: print(str.format('{:04X}', regs['PC']),'SPHL')
     regs['SP'] = 256*regs['H'] + regs['L']
     regs['PC'] = (regs['PC'] + 1) & 65535
-    periods += 6
+    periods += 5
 
 def instruction_FA(): # JM addr
     global memory, periods, regs, flags, single_step
@@ -2795,7 +2792,7 @@ def instruction_FA(): # JM addr
         periods += 10
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 7
+    periods += 10
 
 def instruction_FB(): # EI
     global memory, periods, regs, flags, single_step
@@ -2816,10 +2813,10 @@ def instruction_FC(): # CM addr
         memory[sp] = ((regs['PC']+3) & 65535) % 256
         regs['SP'] = sp
         regs['PC'] = memory[regs['PC']+1] + 256*memory[regs['PC']+2]
-        periods += 18
+        periods += 17
     else:
         regs['PC'] = (regs['PC'] + 3) & 65535
-    periods += 9
+    periods += 11
 
 def instruction_FD(): # undefined
     print ('Undefined instuction 0FD encountered at', str.format('{:04X}', regs['PC']))
@@ -2851,7 +2848,7 @@ def instruction_FF(): # RST 7
     memory[sp] = regs['PC'] // 256
     regs['SP'] = sp
     regs['PC'] = 64
-    periods += 12
+    periods += 11
 
 
 #-----------------------------------------------------------------------------#
@@ -3093,7 +3090,7 @@ def hook_save():
 # main
 #----------------------------------------------------------------------
 
-print("\n--- Simulator for 8080 & 8085 microprocessors ---")
+print("\n--- Emulator for Intel 8080A microprocessor ---")
 if len(sys.argv) > 1: # handle optional argv for load file
     fname = sys.argv[1].strip()
     cl = ['L', fname]
