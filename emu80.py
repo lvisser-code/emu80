@@ -23,7 +23,7 @@ Commands
 Hooks for hardware
   OUT 2 will display a character from regs['A']
   IN  3 will return A=1
-  CALL to 0020H will be redirected to input a line of text from keyboard
+  CALL to 0053H will be redirected to input a line of text from keyboard
   JZ to 0023H will be redirected to save the program from simulated memory to disk
   JZ to 0026H will be redirected to load a program from disk to simulated memory
   columns is set equal to the number of columns in the display
@@ -2136,7 +2136,7 @@ def instruction_CD(): # CALL addr
         str.format('{:02X}', memory[regs['PC']+1]))
     target = memory[regs['PC']+1] + 256*memory[regs['PC']+2]
 
-    if target == 0x20: # CALL GETLIN hardware hook
+    if target == 0x53: # CALL LIN hardware hook
         line = input()
         KBDBFR = 65027 # 0FE03H
         ptr = 0
