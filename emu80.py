@@ -2138,7 +2138,7 @@ def instruction_CD(): # CALL addr
 
     if target == 0x53: # CALL LIN hardware hook
         line = input()
-        KBDBFR = 65027 # 0FE03H
+        KBDBFR = 0xFE00
         ptr = 0
         for char in line:
             memory[KBDBFR+ptr] = ord(char)
