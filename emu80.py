@@ -2144,6 +2144,7 @@ def instruction_CD(): # CALL addr
             memory[KBDBFR+ptr] = ord(char)
             ptr += 1
         memory[KBDBFR+ptr] = 13
+        flags['CY'] = 0
         column = 1
         regs['PC'] = regs['PC'] + 3
         return
