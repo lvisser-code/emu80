@@ -2136,7 +2136,7 @@ def instruction_CD(): # CALL addr
         str.format('{:02X}', memory[regs['PC']+1]))
     target = memory[regs['PC']+1] + 256*memory[regs['PC']+2]
 
-    if target == 0x53: # CALL LIN hardware hook
+    if target == 0x57: # CALL LIN hardware hook
         line = input()
         KBDBFR = 0xFD00
         ptr = 0
