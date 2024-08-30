@@ -3097,7 +3097,7 @@ if len(sys.argv) > 1: # handle optional argv for load file
     cl = ['L', fname]
     load_file(cl)
 while True:
-    command_string = input(".")
+    command_string = input("]")
     cl = command_list(command_string)
     command = cl[0]
     if command == "B":
